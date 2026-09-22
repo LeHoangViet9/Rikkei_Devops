@@ -1,0 +1,15 @@
+server {
+    listen 80;
+
+    # Xử lý request cho User Service
+    location /users/ {
+        # Sử dụng DNS nội bộ của Docker (tên service) thay vì localhost
+        # Dấu "/" ở cuối giúp rewrite path (bỏ /users/ khi gửi tới backend)
+        proxy_pass http://user_service:8081/;
+    }
+
+    # Xử lý request cho Product Service
+    location /products/ {
+        proxy_pass http://product_service:8082/;
+    }
+}

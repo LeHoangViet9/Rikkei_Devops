@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  backend:
+    environment:
+      - ENV=staging
+    ports:
+      - "8080:8080" # Ánh xạ port ra ngoài máy host để dev/test debug trực tiếp
+
+  postgres:
+    environment:
+      - POSTGRES_PASSWORD=debug_password
+    ports:
+      - "5432:5432" # Mở port DB để dev kết nối tool (DBeaver, pgAdmin...) kiểm tra

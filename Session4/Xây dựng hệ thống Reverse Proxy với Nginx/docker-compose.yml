@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  nginx_proxy:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+  
+  user_service:
+    image: storex-user:latest
+    # expose dùng để mở port mạng nội bộ giữa các container với nhau, 
+    # không map ra ngoài máy host (bảo mật hơn).
+    expose:
+      - "8081"
+  
+  product_service:
+    image: storex-product:latest
+    expose:
+      - "8082"

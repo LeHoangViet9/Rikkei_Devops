@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  backend:
+    image: storex-backend:v4
+
+  postgres:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

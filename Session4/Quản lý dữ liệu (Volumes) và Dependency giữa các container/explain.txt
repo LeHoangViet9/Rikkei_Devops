@@ -1,0 +1,14 @@
+Healthcheck là gì?
+Thay vì chỉ kiểm tra xem container đã được "bật" lên chưa (trạng thái chạy tiến trình), Docker sẽ chạy định kỳ một lệnh (command) bên trong chính container đó để xác nhận xem dịch vụ (service) đã thực sự sẵn sàng nhận kết nối hay chưa.
+
+Cơ chế kiểm tra cho từng Service:
+
+PostgreSQL: Sử dụng lệnh pg_isready -U admin -d storex_db. Lệnh này ping trực tiếp vào database storex_db bằng user admin. Nếu DB trả lời, nó được đánh dấu là healthy.
+
+Redis: Sử dụng lệnh redis-cli ping. Thông thường Redis sẽ trả về chuỗi PONG nếu nó đã sẵn sàng hoạt động.
+
+Điều hướng thứ tự khởi động (Depends_on với service_healthy):
+Ở service backend, khai báo depends_on được chuyển sang cấu trúc dạng Dictionary kèm theo điều kiện condition: service_healthy. Docker Compose sẽ tạm giữ (pause) quá trình khởi động của backend cho đến khi cả postgres và redis vượt qua các bài test healthcheck nói trên (chuyển sang trạng thái healthy). Điều này giải quyết triệt để lỗi backend crash do kết nối database/cache quá sớm.
+
+Bảo toàn dữ liệu (Volumes):
+Khai báo named volume postgres_data và mount vào /var/lib/postgresql/data (đường dẫn lưu dữ liệu mặc định của image Postgres). Khi bạn chạy lệnh docker-compose down, container bị xóa nhưng named volume vẫn được Docker giữ lại an toàn ở máy host. Khi up lại, dữ liệu cũ sẽ tự động được gắn lại vào container mới.
