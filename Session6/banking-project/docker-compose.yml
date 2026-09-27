@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  core-db:
+    image: postgres:15
+    container_name: core-db
+    environment:
+      POSTGRES_USER: postgres      # Khớp với cấu hình properties của bạn
+      POSTGRES_PASSWORD: 123456    # Khớp với cấu hình properties của bạn
+      POSTGRES_DB: banking_db
+    networks:
+      - banking-network
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+
+  account-service:
+    build: .
+    image: account-service:latest
+    container_name: account-service
+    ports:
+      - "8080:8080"
+    environment:
+      # Ghi đè biến môi trường, trỏ host về tên container database là "core-db"
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://core-db:5432/banking_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=123456
+    depends_on:
+      - core-db
+    networks:
+      - banking-network
+  transaction-service:
+    build: ./transaction-service # Đường dẫn tới thư mục chứa project transaction-service
+    image: transaction-service:latest
+    container_name: transaction-service
+    ports:
+      - "8081:8080" # Map port 8081 của host vào 8080 của container
+    networks:
+      - banking-network # Bắt buộc phải chung mạng để thấy được account-service
+    depends_on:
+      - account-service
+  api-gateway:
+    build: ./api-gateway
+    image: api-gateway:latest
+    container_name: api-gateway
+    ports:
+      - "80:8080" # Map port 80 của máy tính vào port 8080 của Gateway
+    networks:
+      - banking-network
+    depends_on:
+      - account-service
+      - transaction-service
+
+# Khai báo Network
+networks:
+  banking-network:
+    driver: bridge
+
+# Khai báo Named Volume
+volumes:
+  pg-data:

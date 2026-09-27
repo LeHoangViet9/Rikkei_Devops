@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  quickbite-user:
+    image: stack-user-service
+    container_name: quickbite-user
+    ports:
+      - "8081:8081"
+    environment:
+      - DB_HOST=quickbite5-db
+      - DB_PORT=5432
+      - DB_USER=root
+      - DB_PASSWORD=secret
+      - DB_NAME=quickbite_user_db
+    networks:
+      - quickbite-net
+
+  quickbite-restaurant:
+    image: stack-restaurant-service
+    container_name: quickbite-restaurant
+    ports:
+      - "8082:8082"
+    environment:
+      - DB_HOST=quickbite5-db
+      - DB_PORT=5432
+      - DB_USER=root
+      - DB_PASSWORD=secret
+      - DB_NAME=quickbite_restaurant_db
+    networks:
+      - quickbite-net
+
+  quickbite-order:
+    image: stack-order-service
+    container_name: quickbite-order
+    ports:
+      - "8083:8083"
+    environment:
+      - DB_HOST=quickbite5-db
+      - DB_PORT=5432
+      - DB_USER=root
+      - DB_PASSWORD=secret
+      - DB_NAME=quickbite_order_db
+    networks:
+      - quickbite-net
+
+  quickbite-notification:
+    image: stack-notification-service
+    container_name: quickbite-notification
+    ports:
+      - "8084:8084"
+    environment:
+      - DB_HOST=quickbite5-db
+      - DB_PORT=5432
+      - DB_USER=root
+      - DB_PASSWORD=secret
+      - DB_NAME=quickbite_notification_db
+    networks:
+      - quickbite-net
+
+networks:
+  quickbite-net:
+    external: true
