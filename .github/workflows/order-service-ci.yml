@@ -1,0 +1,117 @@
+name: Order Service CI
+
+on:
+  push:
+    branches:
+      - main
+    # Chỉ chạy pipeline này khi có sự thay đổi trong thư mục order-service
+    paths:
+      - 'Session7/order-service/**'
+
+jobs:
+  # ==========================================
+  # JOB 1: Kiểm tra chất lượng code (Chạy song song)
+  # ==========================================
+  code_quality_check:
+    name: Code Quality Check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./Session7/order-service
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Run Code Check
+        run: |
+          chmod +x ./gradlew
+          ./gradlew check
+
+  # ==========================================
+  # JOB 2: Unit Test với Database (Chạy song song)
+  # ==========================================
+  unit_test:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./Session7/order-service
+
+    # Khởi tạo Service Container - Database PostgreSQL tạm thời
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: admin
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: order_db
+        ports:
+          - 5432:5432
+        # Cấu hình Healthcheck để GitHub Actions chờ DB khởi động xong mới chạy test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Run Tests
+        # Ghi đè biến môi trường để Spring Boot kết nối tới DB tạm thời vừa tạo
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/order_db
+          SPRING_DATASOURCE_USERNAME: admin
+          SPRING_DATASOURCE_PASSWORD: password
+        run: |
+          chmod +x ./gradlew
+          ./gradlew test
+
+  # ==========================================
+  # JOB 3: Build & Package (Chạy tuần tự sau Job 1 & 2)
+  # ==========================================
+  build_and_package:
+    name: Build and Upload Artifact
+    # Bắt buộc chờ cả 2 job test và check code thành công
+    needs: [code_quality_check, unit_test]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./Session7/order-service
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build Jar
+        run: |
+          chmod +x ./gradlew
+          ./gradlew bootJar
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: order-service-artifact
+          # Cập nhật đường dẫn lưu file Jar chính xác theo cấu trúc thư mục con
+          path: Session7/order-service/build/libs/*.jar
+          retention-days: 7
