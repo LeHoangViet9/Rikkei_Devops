@@ -1,0 +1,64 @@
+name: Payment Service CI
+
+on:
+  push:
+    branches:
+      - main
+    # Chỉ trigger CI này nếu có thay đổi code trong thư mục payment-service
+    paths:
+      - 'Session7/payment-service/**'
+
+jobs:
+  # --- Giai đoạn 1: Job Kiểm thử ---
+  test_job:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./Session7/payment-service
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Run Tests
+        run: |
+          chmod +x ./gradlew
+          ./gradlew test
+
+  # --- Giai đoạn 2: Job Build ---
+  build_job:
+    name: Build and Upload Artifact
+    needs: test_job # Phải đợi test_job pass mới được chạy
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./Session7/payment-service
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Build Jar
+        run: |
+          chmod +x ./gradlew
+          ./gradlew bootJar
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: payment-service-artifact
+          path: Session7/payment-service/build/libs/*.jar
+          retention-days: 3

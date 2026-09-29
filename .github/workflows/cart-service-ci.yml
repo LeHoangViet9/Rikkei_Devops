@@ -1,0 +1,40 @@
+name: Cart Service CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Session7/cart-service/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # Bắt buộc: Thiết lập thư mục chạy lệnh mặc định
+    defaults:
+      run:
+        working-directory: ./Session7/cart-service
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17' # Đảm bảo đúng version Java của cart-service
+          distribution: 'temurin'
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew bootJar
+
+      # Bổ sung bước lưu file Jar
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cart-service-artifact
+          path: Session7/cart-service/build/libs/*.jar
+          retention-days: 3

@@ -1,0 +1,41 @@
+name: User Service CI
+
+on:
+  push:
+    branches:
+      - main
+    # Chỉ trigger CI này nếu có thay đổi code trong thư mục user-service
+    paths:
+      - 'Session7/user-service/**'
+
+jobs:
+  build_job:
+    runs-on: ubuntu-latest
+    # Thiết lập thư mục gốc cho tất cả các lệnh 'run' bên dưới
+    defaults:
+      run:
+        working-directory: ./Session7/user-service
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build Jar
+        run: |
+          chmod +x ./gradlew
+          ./gradlew bootJar
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: user-service-artifact
+          # Action 'uses' không chịu ảnh hưởng của working-directory, 
+          
+          path: Session7/user-service/build/libs/*.jar
+          retention-days: 3
