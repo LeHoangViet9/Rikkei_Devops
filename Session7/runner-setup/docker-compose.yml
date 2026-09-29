@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  github-runner:
+    # Sử dụng image cộng đồng phổ biến nhất cho GitHub Runner
+    image: myoung34/github-runner:latest
+    container_name: quickbite_runner
+    environment:
+      # Thay bằng URL repository của bạn
+      REPO_URL: "https://github.com/TenCuaBan/Rikkei_Devops" 
+      # Token lấy từ GitHub Settings > Actions > Runners > New self-hosted runner
+      RUNNER_TOKEN: BV24C7XZMZSTXZHCKNGDNB3KXMTDW 
+      RUNNER_NAME: "restaurant-build-server"
+      # Gắn nhãn để định tuyến đúng job từ file CI
+      LABELS: "quickbite-runner" 
+    volumes:
+      # Mount Docker socket: Cho phép runner mượn Docker của máy host để chạy các lệnh build/push image
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Mount Workdir: Nơi chứa mã nguồn tải về và lưu cache tạm thời, tránh bị mất khi container khởi động lại
+      - runner-work-data:/_work
+
+volumes:
+  runner-work-data:
